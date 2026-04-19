@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+
+<!-- SEO Meta Tags -->
+<title>BULLSEYE — A Darts Game by Chatbot King</title>
+<meta property="og:title" content="BULLSEYE — A Darts Game by Chatbot King" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="BULLSEYE — A Darts Game by Chatbot King" />
+<!-- End SEO Meta Tags -->
+
+<script data-field-replace>
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var fields={};
+  var paramMap={
+    'first_name':'firstName','last_name':'lastName','full_name':'fullName',
+    'email':'email','phone':'phone','company':'company',
+    'city':'city','state':'state','country':'country'
+  };
+  var skipTags={'SCRIPT':1,'STYLE':1,'NOSCRIPT':1,'TEXTAREA':1,'CODE':1,'PRE':1};
+  var hasUrlFields=false;
+  for(var p in paramMap){
+    var v=params.get(p);
+    if(v){fields[paramMap[p]]=v;hasUrlFields=true;}
+  }
+  var contactId=params.get('contact_id');
+  function esc(s){
+    if(!s)return s;
+    var d=document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+  function doReplace(data){
+    var r={};
+    r['{{full_name}}']=esc(((data.firstName||'')+' '+(data.lastName||'')).trim()||((data.fullName||data.name)||''));
+    r['{{first_name}}']=esc(data.firstName||(data.name?data.name.split(' ')[0]:'')||'');
+    r['{{last_name}}']=esc(data.lastName||(data.name&&data.name.indexOf(' ')>-1?data.name.substring(data.name.indexOf(' ')+1):'')||'');
+    r['{{email}}']=esc(data.email||'');
+    r['{{phone}}']=esc(data.phone||'');
+    r['{{company}}']=esc(data.company||'');
+    r['{{city}}']=esc(data.city||'');
+    r['{{state}}']=esc(data.state||'');
+    r['{{country}}']=esc(data.country||'');
+    r['{{date}}']=new Date().toLocaleDateString();
+    r['{{time}}']=new Date().toLocaleTimeString();
+    r['{{location}}']=[data.city,data.state,data.country].filter(Boolean).join(', ');
+    r['{{tracking_id}}']=esc(data.trackingId||'');
+    r['{{lastClickedProduct}}']=esc(data.lastClickedProduct||'');
+    r['{{lastProductClickDate}}']=esc(data.lastProductClickDate||'');
+    r['{{lastClickedProductPrice}}']=esc(data.lastClickedProductPrice||'');
+    r['{{lastClickedProductURL}}']=esc(data.lastClickedProductURL||'');
+    r['{{productsClickedCount}}']=esc(data.productsClickedCount||'0');
+    r['{{ip_address}}']=esc(data.ipAddress||'');
+    r['{{ip}}']=esc(data.ipAddress||'');
+    if(data.customFields){
+      for(var k in data.customFields){
+        r['{{'+k+'}}']=esc(String(data.customFields[k]||''));
+      }
+    }
+    params.forEach(function(v,k){
+      if(!paramMap[k]&&k!=='contact_id'&&k!=='page_id'&&k.indexOf('utm_')!==0){
+        r['{{'+k+'}}']=esc(v);
+      }
+    });
+    var hasValues=false;
+    for(var key in r){if(r[key]){hasValues=true;break;}}
+    if(!hasValues)return;
+    var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{
+      acceptNode:function(n){
+        var p=n.parentNode;
+        if(p&&skipTags[p.nodeName])return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var node;
+    while(node=walker.nextNode()){
+      var txt=node.nodeValue;
+      if(txt&&txt.indexOf('{{')>-1){
+        var changed=txt;
+        for(var ph in r){
+          if(r[ph]&&changed.indexOf(ph)>-1){
+            changed=changed.split(ph).join(r[ph]);
+          }
+        }
+        if(changed!==txt)node.nodeValue=changed;
+      }
+    }
+    var attrs=['value','placeholder','content','alt','title'];
+    attrs.forEach(function(attr){
+      var els=document.querySelectorAll('['+attr+'*="{{"]');
+      for(var i=0;i<els.length;i++){
+        var tag=els[i].tagName;
+        if(skipTags[tag])continue;
+        var val=els[i].getAttribute(attr);
+        if(val){
+          var nv=val;
+          for(var ph in r){
+            if(r[ph]&&nv.indexOf(ph)>-1){
+              nv=nv.split(ph).join(r[ph]);
+            }
+          }
+          if(nv!==val)els[i].setAttribute(attr,nv);
+        }
+      }
+    });
+  }
+  function run(){
+    if(contactId){
+      var xhr=new XMLHttpRequest();
+      xhr.open('GET','https://paymegpt.com/api/landing/context/'+encodeURIComponent(contactId)+'?page_id=3366');
+      xhr.onload=function(){
+        if(xhr.status===200){
+          try{
+            var resp=JSON.parse(xhr.responseText);
+            if(resp.success&&resp.contact){
+              var merged=resp.contact;
+              for(var k in fields){merged[k]=fields[k];}
+              doReplace(merged);
+              return;
+            }
+          }catch(e){}
+        }
+        if(hasUrlFields)doReplace(fields);
+      };
+      xhr.onerror=function(){if(hasUrlFields)doReplace(fields);};
+      xhr.send();
+    }else if(hasUrlFields){
+      doReplace(fields);
+    }
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}
+  else{run();}
+})();
+</script>
+<script data-payment>
+(function(){
+  var slug='F7dJsLXN5F';
+  var apiBase='https://paymegpt.com';
+  function findEmail(){
+    var ids=['email','emailAddress','buyer-email','buyerEmail','user-email','userEmail','checkout-email','customer-email','contact-email'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value&&el.value.includes('@'))return el.value.trim();}
+    var inputs=document.querySelectorAll('input[type="email"],input[name*="email"],input[placeholder*="email"],input[placeholder*="Email"]');
+    for(var j=0;j<inputs.length;j++){if(inputs[j].value&&inputs[j].value.includes('@'))return inputs[j].value.trim();}
+    return '';
+  }
+  function findName(){
+    var ids=['name','fullName','full-name','buyer-name','buyerName','customer-name','userName','user-name'];
+    for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.value)return el.value.trim();}
+    var inputs=document.querySelectorAll('input[name*="name"]:not([name*="email"]):not([type="email"]),input[placeholder*="name"]:not([placeholder*="email"]):not([type="email"]),input[placeholder*="Name"]:not([type="email"])');
+    for(var j=0;j<inputs.length;j++){if(inputs[j].value)return inputs[j].value.trim();}
+    return '';
+  }
+  var __realProcessPayment=function(a,b,c,d,e){
+    var amountCents,email,productName,productDescription,customerName,quantity;
+    if(a&&typeof a==='object'){
+      amountCents=a.amountCents;email=a.email;productName=a.productName;
+      productDescription=a.productDescription||'';customerName=a.name||'';quantity=a.quantity||1;
+    }else{
+      amountCents=typeof a==='number'?a:0;productName=typeof b==='string'?b:'';
+      productDescription=typeof c==='string'?c:'';email='';customerName='';quantity=1;
+    }
+    if(!email)email=findEmail();
+    if(!customerName)customerName=findName();
+    if(!productName){alert('Product name is required.');return Promise.reject('no_product_name');}
+    if(!amountCents||amountCents<100){alert('Amount must be at least $1.00');return Promise.reject('invalid_amount');}
+    if(!email){alert('Please enter your email address.');return Promise.reject('no_email');}
+    var successBase=window.location.href.split('?')[0];
+    return fetch(apiBase+'/api/landing-pages/public/'+slug+'/payment/checkout',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,name:customerName,amountCents:amountCents,productName:productName,productDescription:productDescription,quantity:quantity,successUrl:successBase+'?payment=success&product='+encodeURIComponent(productName)+'&session_id={CHECKOUT_SESSION_ID}',cancelUrl:successBase+'?payment=cancelled'})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.checkoutUrl){window.location.href=d.checkoutUrl;}
+      else{alert(d.error||'Failed to process payment');throw new Error(d.error);}
+    });
+  };
+  Object.defineProperty(window,'__processPayment',{value:__realProcessPayment,writable:false,configurable:false});
+  document.addEventListener('DOMContentLoaded',function(){
+    var urlParams=new URLSearchParams(window.location.search);
+    if(urlParams.get('payment')==='success'){
+      var pName=urlParams.get('product')||'your item';
+      var overlay=document.createElement('div');overlay.id='payment-success-overlay';
+      overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999;font-family:system-ui,-apple-system,sans-serif;';
+      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Payment Successful!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">Thank you for purchasing '+pName.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'.</p><button onclick="document.getElementById(\'payment-success-overlay\').remove();window.history.replaceState({},\'\',window.location.pathname);" style="padding:12px 32px;font-size:16px;font-weight:600;background:#16a34a;color:white;border:none;border-radius:8px;cursor:pointer;">Continue</button></div>';
+      document.body.appendChild(overlay);
+    }
+  });
+})();
+</script>  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+  <div class="hud">
+    <div class="brand">BULLS<span class="dot">·</span>EYE</div>
+    <div class="score-pod">
+      <span class="label">SCORE</span>
+      <span class="value" id="score">0</span>
+    </div>
+    <div class="darts-left" id="dartsLeft">
+      <div class="dart-pip"></div><div class="dart-pip"></div><div class="dart-pip"></div>
+      <div class="dart-pip"></div><div class="dart-pip"></div>
+    </div>
+  </div>
+
+  <div class="board-stage">
+    <div class="board-wrap" id="boardWrap">
+      <svg class="board" id="board" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="wood" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#2a1f15"/>
+            <stop offset="100%" stop-color="#0f0a07"/>
+          </radialGradient>
+          <radialGradient id="bullCenter" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ff4757"/>
+            <stop offset="70%" stop-color="#c72030"/>
+            <stop offset="100%" stop-color="#8b0000"/>
+          </radialGradient>
+        </defs>
+        <circle cx="250" cy="250" r="248" fill="url(#wood)"/>
+        <circle cx="250" cy="250" r="240" fill="none" stroke="#36D6B5" stroke-width="1" opacity="0.3"/>
+        <g id="numberRing" font-family="Anton, sans-serif" font-size="18" fill="#F4F1DE" text-anchor="middle"></g>
+        <g id="sectors"></g>
+        <g id="spider" stroke="#1a1a1a" stroke-width="0.8" fill="none" opacity="0.6"></g>
+        <circle cx="250" cy="250" r="200" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+        <circle cx="250" cy="250" r="185" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="250" cy="250" r="125" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="250" cy="250" r="110" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="250" cy="250" r="22" fill="#1e6b3e" stroke="#0a0a0a" stroke-width="1"/>
+        <circle cx="250" cy="250" r="10" fill="url(#bullCenter)" stroke="#0a0a0a" stroke-width="0.8"/>
+        <circle cx="247" cy="247" r="3" fill="#ff6b7a" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="combo-flash" id="comboFlash"></div>
+  </div>
+
+  <div class="throw-zone">
+    <div class="instruction" id="instruction">SWIPE UP TO THROW</div>
+    <div class="throw-track" id="throwTrack">
+      <div class="crosshair"></div>
+      <div class="dart-handle" id="dartHandle"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="introOverlay">
+    <div class="eyebrow">A GAME OF PRECISION</div>
+    <h1>BULLS<span class="accent">EYE</span></h1>
+    <div class="tagline">Five darts. One board. No mercy.</div>
+    <div class="how-to">
+      <div class="row"><div class="num">01</div><div class="txt">Drag the dart left or right to aim</div></div>
+      <div class="row"><div class="num">02</div><div class="txt">Swipe up fast to throw, slow = soft, wild = miss</div></div>
+      <div class="row"><div class="num">03</div><div class="txt">Hit the bullseye, watch for combo streaks</div></div>
+    </div>
+    <button class="cta" id="startBtn">START THROWING</button>
+  </div>
+
+  <div class="overlay hidden" id="gameOverOverlay">
+    <div class="eyebrow" id="gameOverEyebrow">ROUND COMPLETE</div>
+    <div class="score-label">FINAL SCORE</div>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="rating" id="rating">&mdash;</div>
+    <div class="best-score" id="bestScore">BEST: 0</div>
+    <button class="cta" id="playAgainBtn">THROW AGAIN</button>
+    <button class="cta secondary" id="shareBtn">SHARE SCORE</button>
+  </div>
+
+  <div class="footer-mark">CRAFTED BY <span class="ck">CHATBOT KING</span></div>
+</div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
